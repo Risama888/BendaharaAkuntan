@@ -1,4 +1,3 @@
-
 import requests
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
@@ -46,11 +45,14 @@ def update_saldo(saldo, pemasukan=0, pengeluaran=0):
 @app.route('/update', methods=['POST'])
 def update():
     global saldo_awal
-    # Ambil data pemasukan dan pengeluaran dari Supabase
-    # Asumsikan tabel bernama 'keuangan' dan ada data terbaru
-    # Bisa diubah sesuai struktur tabel Anda
-    data_keuangan = supabase.table('keuangan').select('*').order('created_at', desc=True).limit(1).execute()
+    # Ambil data terbaru dari Supabase (GET request secara default)
+    data_keuangan = supabase.table('keuangan') \
+        .select('*') \
+        .order('created_at', desc=True) \
+        .limit(1) \
+        .execute()
 
+    # Data dari response
     if data_keuangan.data:
         pemasukan = data_keuangan.data[0].get('pemasukan', 0)
         pengeluaran = data_keuangan.data[0].get('pengeluaran', 0)
@@ -59,7 +61,7 @@ def update():
         pengeluaran = 0
 
     saldo_terbaru, persen_pemasukan, persen_pengeluaran = update_saldo(saldo_awal, pemasukan, pengeluaran)
-    saldo_awal = saldo_terbaru  # Update saldo saldo terbaru
+    saldo_awal = saldo_terbaru # Update saldo saldo terbaru
 
     hasil_kirim = kirim_pesan(saldo_terbaru, persen_pemasukan, persen_pengeluaran, pemasukan, pengeluaran)
     return jsonify({
