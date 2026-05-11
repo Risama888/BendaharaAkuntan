@@ -1,4 +1,3 @@
-
 import requests
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
@@ -11,13 +10,14 @@ TOKEN = 'XR5pM62abT79zu1QstSa'
 TARGET_NUMBER = '085817824127'
 
 # Konfigurasi Supabase
-SUPABASE_URL = 'https://eqkenuzuhgmewirhgseg.supabase.co/rest/v1/signals'  # Ganti dengan URL project Supabase Anda
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2VudXp1aGdtZXdpcmhnc2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg4OTgzNzgsImV4cCI6MjA3NDQ3NDM3OH0.YKLdjMnNatSQMmZ3zgVumiMpNH2GS4KOb66Th0__mcU'  # Ganti dengan anon key Anda
+SUPABASE_URL = 'https://your-project.supabase.co'  # Ganti dengan URL project Supabase Anda
+SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwY3lhbXV2dGluam5oYm5xbGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDg0OTgsImV4cCI6MjA5NDA4NDQ5OH0.4JnPSMo9PPckUC8-LekUFaxKoo3OyoC5X0ysXFhdKA4'  # Ganti dengan anon key Anda
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Saldo awal
 saldo_awal = 2650000
 
+# Fungsi kirim pesan
 def kirim_pesan(saldo, persen_pemasukan, persen_pengeluaran, pemasukan, pengeluaran):
     message = (
         f"Situasi Keuangan Saat Ini:\n"
@@ -43,25 +43,40 @@ def update_saldo(saldo, pemasukan=0, pengeluaran=0):
     persen_pengeluaran = (pengeluaran / saldo_awal) * 100 if saldo_awal != 0 else 0
     return saldo_baru, persen_pemasukan, persen_pengeluaran
 
-def proses_keuangan():
-    global saldo_awal
-    # Ambil data terbaru dari Supabase
+# Fungsi untuk ambil data dari Supabase
+def ambil_data_keuangan():
     data_keuangan = supabase.table('keuangan').select('*').order('created_at', desc=True).limit(1).execute()
-
     if data_keuangan.data:
         pemasukan = data_keuangan.data[0].get('pemasukan', 0)
         pengeluaran = data_keuangan.data[0].get('pengeluaran', 0)
     else:
         pemasukan = 0
         pengeluaran = 0
+    return pemasukan, pengeluaran
 
+# Contoh: Panggil fungsi ini saat startup atau sesuai kebutuhan
+pemasukan, pengeluaran = ambil_data_keuangan()
+saldo_terbaru, persen_pemasukan, persen_pengeluaran = update_saldo(saldo_awal, pemasukan, pengeluaran)
+
+# Kirim pesan saat startup (opsional)
+# hasil_kirim = kirim_pesan(saldo_terbaru, persen_pemasukan, persen_pengeluaran, pemasukan, pengeluaran)
+# print(hasil_kirim)
+
+@app.route('/some-endpoint', methods=['GET'])
+def some_function():
+    # Jika ingin mengambil data terbaru saat endpoint dipanggil
+    pemasukan, pengeluaran = ambil_data_keuangan()
     saldo_terbaru, persen_pemasukan, persen_pengeluaran = update_saldo(saldo_awal, pemasukan, pengeluaran)
-    saldo_awal = saldo_terbaru  # update saldo global
-
     hasil_kirim = kirim_pesan(saldo_terbaru, persen_pemasukan, persen_pengeluaran, pemasukan, pengeluaran)
-    print(hasil_kirim)
+    return jsonify({
+        'status': 'success',
+        'message': hasil_kirim,
+        'saldo_terbaru': saldo_terbaru,
+        'pemasukan': pemasukan,
+        'pengeluaran': pengeluaran,
+        'persen_pemasukan': persen_pemasukan,
+        'persen_pengeluaran': persen_pengeluaran
+    })
 
-# Jika ingin menjalankan proses secara otomatis saat script dieksekusi
 if __name__ == '__main__':
-    proses_keuangan()
-    # Jika ingin menjalankan secara otomatis setiap interval tertentu, bisa pakai scheduler
+    app.run(debug=True)
