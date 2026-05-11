@@ -10,7 +10,7 @@ TOKEN = 'XR5pM62abT79zu1QstSa'
 TARGET_NUMBER = '085817824127'
 
 # Konfigurasi Supabase
-SUPABASE_URL = 'https://your-project.supabase.co'  # Ganti dengan URL project Supabase Anda
+SUPABASE_URL = 'https://wpcyamuvtinjnhbnqlln.supabase.co'  # Ganti dengan URL project Supabase Anda
 SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwY3lhbXV2dGluam5oYm5xbGxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MDg0OTgsImV4cCI6MjA5NDA4NDQ5OH0.4JnPSMo9PPckUC8-LekUFaxKoo3OyoC5X0ysXFhdKA4'  # Ganti dengan anon key Anda
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
